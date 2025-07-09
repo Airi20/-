@@ -1,4 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
+import ScoreBoard from "./ScoreBoard"
+// こっちのほうが確実
+import { db, collection, query, orderBy, limit, getDocs } from "./firebase/firebase.js";
+
 
 const canvasWidth = 400
 const canvasHeight = 600
@@ -33,11 +37,15 @@ export default function Game() {
   const [enemies, setEnemies] = useState([])
   const [playerBullets, setPlayerBullets] = useState([])
   const [enemyBullets, setEnemyBullets] = useState([])
+  const [clearTime, setClearTime] = useState(null)
+  const [playerName, setPlayerName] = useState("")
+  const [submitted, setSubmitted] = useState(false)
 
   const playerXRef = useRef(playerX)
   const enemiesRef = useRef(enemies)
   const playerBulletsRef = useRef(playerBullets)
   const enemyBulletsRef = useRef(enemyBullets)
+  const startTimeRef = useRef(null)
 
   useEffect(() => { playerXRef.current = playerX }, [playerX])
   useEffect(() => { enemiesRef.current = enemies }, [enemies])
@@ -84,13 +92,37 @@ export default function Game() {
     ])
     setPlayerBullets([])
     setEnemyBullets([])
+    setPlayerName("")
+    setSubmitted(false)
+    setClearTime(null)
+    startTimeRef.current = Date.now()
     setStatus("playing")
+  }
+
+  useEffect(() => {
+    if (status === "clear") {
+      const time = (Date.now() - startTimeRef.current) / 1000
+      setClearTime(time)
+    }
+  }, [status])
+
+  const handleSubmitScore = async () => {
+    if (!playerName) return alert("名前を入力してね！")
+    try {
+      await addDoc(collection(db, "scores"), {
+        name: playerName,
+        time: clearTime,
+        createdAt: new Date(),
+      })
+      setSubmitted(true)
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   useEffect(() => {
     if (status !== "playing") return
     const interval = setInterval(() => {
-      if (status !== "playing") return
       if (keys.current['ArrowLeft']) {
         setPlayerX((x) => Math.max(0, x - moveSpeed))
       }
@@ -106,7 +138,7 @@ export default function Game() {
         prev.map((enemy) => {
           if (!enemy.alive) return enemy
           const moveDir = Math.floor(Math.random() * 3) - 1
-          let newX = Math.min(canvasWidth - enemyWidth, Math.max(0, enemy.x + moveDir * 5))
+          const newX = Math.min(canvasWidth - enemyWidth, Math.max(0, enemy.x + moveDir * 5))
           const newCooldown = enemy.cooldown - 100
 
           if (newCooldown <= 0) {
@@ -120,8 +152,12 @@ export default function Game() {
         })
       )
 
-      setPlayerBullets((bullets) => bullets.map((b) => ({ ...b, y: b.y + b.dy })).filter((b) => b.y > -bulletSize))
-      setEnemyBullets((bullets) => bullets.map((b) => ({ ...b, y: b.y + b.dy })).filter((b) => b.y < canvasHeight + bulletSize))
+      setPlayerBullets((bullets) =>
+        bullets.map((b) => ({ ...b, y: b.y + b.dy })).filter((b) => b.y > -bulletSize)
+      )
+      setEnemyBullets((bullets) =>
+        bullets.map((b) => ({ ...b, y: b.y + b.dy })).filter((b) => b.y < canvasHeight + bulletSize)
+      )
 
       enemyBulletsRef.current.forEach((b) => {
         if (
@@ -175,6 +211,7 @@ export default function Game() {
     textAlign: 'center',
     zIndex: 20,
   }
+
   const buttonStyle = {
     marginTop: 20,
     padding: '10px 20px',
@@ -187,21 +224,18 @@ export default function Game() {
   }
 
   return (
-    <div
-      style={{
-        width: canvasWidth,
-        height: canvasHeight,
-        backgroundColor: '#222',
-        border: '2px solid #555',
-        position: 'relative',
-        margin: '0 auto',
-        overflow: 'hidden',
-      }}
-    >
+    <div style={{
+      width: canvasWidth,
+      height: canvasHeight,
+      backgroundColor: '#222',
+      border: '2px solid #555',
+      position: 'relative',
+      margin: '0 auto',
+      overflow: 'hidden',
+    }}>
       {/* プレイヤー */}
       {status === "playing" && (
-        <div
-          style={{
+        <div style={{
           position: 'absolute',
           bottom: 20,
           left: playerX,
@@ -210,71 +244,58 @@ export default function Game() {
           backgroundImage: 'url(/player/player.jpg)',
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
-       }}
-/>
-
+        }} />
       )}
 
       {/* 敵 */}
       {enemies.map((e) =>
         e.alive ? (
-          <div
-            key={e.id}
-            style={{
-              position: 'absolute',
-              top: e.y,
-              left: e.x,
-              width: enemyWidth,
-              height: enemyHeight,
-              backgroundColor: 'crimson',
-              borderRadius: 5,
-            }}
-          />
+          <div key={e.id} style={{
+            position: 'absolute',
+            top: e.y,
+            left: e.x,
+            width: enemyWidth,
+            height: enemyHeight,
+            backgroundColor: 'crimson',
+            borderRadius: 5,
+          }} />
         ) : null
       )}
 
       {/* 弾 */}
       {playerBullets.map((b, i) => (
-        <div
-          key={'p' + i}
-          style={{
-            position: 'absolute',
-            top: b.y,
-            left: b.x,
-            width: bulletSize,
-            height: bulletSize,
-            backgroundColor: 'lime',
-            borderRadius: '50%',
-          }}
-        />
+        <div key={'p' + i} style={{
+          position: 'absolute',
+          top: b.y,
+          left: b.x,
+          width: bulletSize,
+          height: bulletSize,
+          backgroundColor: 'lime',
+          borderRadius: '50%',
+        }} />
       ))}
       {enemyBullets.map((b, i) => (
-        <div
-          key={'e' + i}
-          style={{
-            position: 'absolute',
-            top: b.y,
-            left: b.x,
-            width: bulletSize,
-            height: bulletSize,
-            backgroundColor: 'red',
-            borderRadius: '50%',
-          }}
-        />
+        <div key={'e' + i} style={{
+          position: 'absolute',
+          top: b.y,
+          left: b.x,
+          width: bulletSize,
+          height: bulletSize,
+          backgroundColor: 'red',
+          borderRadius: '50%',
+        }} />
       ))}
 
-      {/* ライフ */}
+      {/* ライフ表示 */}
       {status === "playing" && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 10,
-            left: 10,
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: 18,
-          }}
-        >
+        <div style={{
+          position: 'absolute',
+          top: 10,
+          left: 10,
+          color: '#fff',
+          fontWeight: 'bold',
+          fontSize: 18,
+        }}>
           Lives: {playerLives}
         </div>
       )}
@@ -295,7 +316,30 @@ export default function Game() {
       {status === "clear" && (
         <div style={overlayStyle}>
           <div>🎉 You Win!</div>
-          <button style={buttonStyle} onClick={resetGame}>Play Again</button>
+          <div>タイム: {clearTime?.toFixed(2)} 秒</div>
+          {!submitted ? (
+            <>
+              <input
+                type="text"
+                placeholder="名前を入力"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                style={{ marginTop: 10, padding: 5 }}
+              />
+              <br />
+              <button style={buttonStyle} onClick={handleSubmitScore}>
+                スコア送信
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={{ marginTop: 10 }}>スコアを送信しました！</div>
+              <ScoreBoard />
+              <button style={buttonStyle} onClick={resetGame}>
+                もう一回やる！
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
