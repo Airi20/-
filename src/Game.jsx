@@ -207,7 +207,7 @@ export default function Game() {
           left: playerX,
           width: playerWidth,
           height: playerHeight,
-          backgroundImage: 'url(/player/player.png)',
+          backgroundImage: 'url(/player/player.jpg)',
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
        }}
