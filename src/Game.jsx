@@ -1,11 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import ScoreBoard from "./ScoreBoard";
 
-// 自作のfirebase設定ファイルから import
-import { db, query, orderBy, limit, getDocs } from "./firebase/firebase.js";
-
-// Firestoreの関数たちはこっちでまとめて
-import { addDoc, collection } from "firebase/firestore";
+import { db, addDoc, collection, query, orderBy, limit, getDocs } from "./firebase/firebase.js";
 
 
 
