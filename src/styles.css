@@ -1,0 +1,31 @@
+body {
+  margin: 0;
+  background-color: #111;
+  color: white;
+  font-family: 'Courier New', Courier, monospace;
+  text-align: center;
+}
+
+.app {
+  padding-top: 20px;
+}
+
+.game {
+  position: relative;
+  width: 400px;
+  height: 600px;
+  margin: 0 auto;
+  background-color: #222;
+  border: 2px solid #555;
+  overflow: hidden;
+}
+
+.player {
+  position: absolute;
+  bottom: 20px;
+  width: 40px;
+  height: 40px;
+  background-color: limegreen;
+  border-radius: 5px;
+  transition: left 0.05s;
+}
