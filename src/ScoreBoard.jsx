@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react"
 import { db, collection, query, orderBy, limit, getDocs } from "./firebase/firebase.js";
-import { addDoc, collection } from "firebase/firestore";
-
 
 export default function ScoreBoard() {
   const [scores, setScores] = useState([])
