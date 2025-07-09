@@ -2,6 +2,9 @@ import React, { useEffect, useState, useRef } from 'react'
 import ScoreBoard from "./ScoreBoard"
 // こっちのほうが確実
 import { db, collection, query, orderBy, limit, getDocs } from "./firebase/firebase.js";
+import { addDoc } from "firebase/firestore";
+import { addDoc, collection } from "firebase/firestore";
+
 
 
 const canvasWidth = 400
@@ -333,7 +336,7 @@ export default function Game() {
             </>
           ) : (
             <>
-              <div style={{ marginTop: 10 }}>スコアを送信しました！</div>
+              <div style={{ marginTop: 10 }}>おめ！</div>
               <ScoreBoard />
               <button style={buttonStyle} onClick={resetGame}>
                 もう一回やる！
