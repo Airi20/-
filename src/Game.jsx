@@ -41,12 +41,18 @@ export default function Game() {
   const [clearTime, setClearTime] = useState(null)
   const [playerName, setPlayerName] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [showRanking, setShowRanking] = useState(false);
+
 
   const playerXRef = useRef(playerX)
   const enemiesRef = useRef(enemies)
   const playerBulletsRef = useRef(playerBullets)
   const enemyBulletsRef = useRef(enemyBullets)
   const startTimeRef = useRef(null)
+
+  const handleNext = () => {
+    setShowRanking(true);
+  };
 
   useEffect(() => { playerXRef.current = playerX }, [playerX])
   useEffect(() => { enemiesRef.current = enemies }, [enemies])
@@ -96,6 +102,7 @@ export default function Game() {
     setPlayerName("")
     setSubmitted(false)
     setClearTime(null)
+    setShowRanking(false);
     startTimeRef.current = Date.now()
     setStatus("playing")
   }
@@ -317,26 +324,47 @@ export default function Game() {
       {status === "clear" && (
         <div style={overlayStyle}>
           <div>🎉 You Win!</div>
-          <div>タイム: {clearTime?.toFixed(2)} 秒</div>
-          {!submitted ? (
+          <div style={{ fontSize: 16, marginTop: 4 }}>
+            タイム: {clearTime?.toFixed(2)} 秒
+          </div>
+
+          {!submitted && !showRanking && (
             <>
               <input
                 type="text"
                 placeholder="名前を入力"
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
-                style={{ marginTop: 10, padding: 5 }}
+                style={{ marginTop: 10, padding: 5, fontSize: 14 }}
               />
               <br />
               <button style={buttonStyle} onClick={handleSubmitScore}>
                 スコア送信
               </button>
             </>
-          ) : (
+          )}
+
+          {submitted && !showRanking && (
             <>
-              <div style={{ marginTop: 10 }}>おめ！</div>
-              <ScoreBoard />
-              <button style={buttonStyle} onClick={resetGame}>
+              <div style={{ marginTop: 10, fontSize: 14 }}>おめでとう！🥰</div>
+              <button
+                style={{ ...buttonStyle, marginTop: 10 }}
+                onClick={handleNext}
+              >
+                次へ
+              </button>
+            </>
+          )}
+
+          {showRanking && (
+            <>
+              <div style={{ maxHeight: 300, overflowY: "auto", fontSize: 12 }}>
+                <ScoreBoard />
+              </div>
+              <button
+                style={{ ...buttonStyle, marginTop: 10 }}
+                onClick={resetGame}
+              >
                 もう一回やる！
               </button>
             </>
@@ -344,5 +372,5 @@ export default function Game() {
         </div>
       )}
     </div>
-  )
+  );
 }
