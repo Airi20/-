@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { db, collection, query, orderBy, limit, getDocs } from "./firebase/firebase.js";
+import { db, addDoc, collection, query, orderBy, limit, getDocs } from "./firebase/firebase.js";
 
 export default function ScoreBoard() {
   const [scores, setScores] = useState([])
